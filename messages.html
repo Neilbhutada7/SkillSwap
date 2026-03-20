@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillSwap – Messages</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Topbar + Sidebar injected by shared.js -->
+
+  <!-- Messages layout is fixed-positioned, no app-content wrapper needed -->
+  <div class="messages-layout">
+
+    <!-- Left panel -->
+    <div class="messages-sidebar">
+      <div class="messages-sidebar-header">
+        <h2>Messages</h2>
+        <div class="compose-btn" id="composeBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </div>
+      <div class="messages-search">
+        <div class="messages-search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="memberSearch" placeholder="Search members">
+        </div>
+      </div>
+      <div class="no-messages" id="noMessages">No messages</div>
+      <div id="convList"></div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="messages-main" id="mainPanel">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <h3>Start new message</h3>
+      <p>Connect with mentors and start learning</p>
+    </div>
+
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="messages.js"></script>
+</body>
+</html>
