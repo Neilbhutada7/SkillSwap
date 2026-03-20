@@ -7,7 +7,7 @@ function injectShell(activeNavId) {
   topbar.className = 'app-topbar';
   topbar.innerHTML = `
     <div class="logo-area">
-      <div class="logo-icon">S</div>
+      <div class="logo-icon" onclick="window.location.href='index.html'">S</div>
     </div>
     <div class="app-topbar-center">
       <button class="browse-btn" onclick="window.location.href='explore.html'">Browse
