@@ -2,6 +2,7 @@
 
 (function () {
   injectShell('nav-credits');
+  syncCreditsUI();
 
   // View Activity button — scrolls to progress section
   document.getElementById('viewActivityBtn').addEventListener('click', function () {
