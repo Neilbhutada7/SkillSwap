@@ -1,13 +1,89 @@
 // shared.js – injects the persistent topbar + sidebar into every app page
 
+const storageKey = 'SkillSwapAppState';
+const defaultState = {
+  credits: 50,
+  sessionsTaught: 0,
+  sessionsBooked: 0,
+  profileStrength: 50,
+  profileLevel: 'Youngling',
+  bookings: [],
+  messages: []
+};
+
+function getAppState() {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function saveAppState(state) {
+  localStorage.setItem(storageKey, JSON.stringify(state));
+}
+
+function initAppState() {
+  let state = getAppState();
+  if (!state || typeof state.credits !== 'number') {
+    state = Object.assign({}, defaultState);
+    saveAppState(state);
+  }
+  return state;
+}
+
+function formatCreditValue(value) {
+  return Math.max(0, Math.round(value));
+}
+
+function getCredits() {
+  const state = initAppState();
+  return formatCreditValue(state.credits);
+}
+
+function setCredits(value) {
+  const state = initAppState();
+  state.credits = formatCreditValue(value);
+  saveAppState(state);
+  syncCreditsUI();
+  return state.credits;
+}
+
+function adjustCredits(amount) {
+  const state = initAppState();
+  state.credits = formatCreditValue(state.credits + amount);
+  saveAppState(state);
+  syncCreditsUI();
+  return state.credits;
+}
+
+function syncCreditsUI() {
+  const creditsValue = getCredits();
+  document.querySelectorAll('.credits-value').forEach(function(el) {
+    el.textContent = creditsValue;
+  });
+
+  const profileCredit = document.querySelector('.credits-display');
+  if (profileCredit) {
+    profileCredit.textContent = 'Credits – ' + creditsValue;
+  }
+
+  const balanceNumber = document.querySelector('.credits-balance-bar .num-big');
+  if (balanceNumber) {
+    balanceNumber.textContent = creditsValue;
+  }
+}
+
 function injectShell(activeNavId) {
+  initAppState();
 
   // ── Topbar ────────────────────────────────────────────────
   const topbar = document.createElement('header');
   topbar.className = 'app-topbar';
   topbar.innerHTML = `
     <div class="logo-area">
-      <div class="logo-icon" onclick="window.location.href='index.html'">S</div>
+      <div class="logo-icon" onclick="window.location.href='index.html'"><img src="images/skillswap_final_logo.png" alt="SkillSwap logo" class="logo-icon-img"></div>
     </div>
     <div class="app-topbar-center">
       <button class="browse-btn" onclick="window.location.href='explore.html'">Browse
@@ -19,6 +95,10 @@ function injectShell(activeNavId) {
       </div>
     </div>
     <div class="app-topbar-right">
+      <div class="app-credits">
+        <span>Credits</span>
+        <strong class="credits-value">${getCredits()}</strong>
+      </div>
       <div class="notif-btn">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <div class="notif-badge">9+</div>
@@ -54,6 +134,10 @@ function injectShell(activeNavId) {
       id: 'nav-credits', href: 'credits.html', label: 'Credits',
       svg: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
     },
+    {
+      id: 'nav-profile', href: 'profile.html', label: 'Profile',
+      svg: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>`
+    },
   ];
 
   const sidebar = document.createElement('nav');
@@ -86,4 +170,5 @@ function injectShell(activeNavId) {
   sidebar.appendChild(avatar);
 
   document.body.insertBefore(sidebar, document.body.children[1]);
+  syncCreditsUI();
 }

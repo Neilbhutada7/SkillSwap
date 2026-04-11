@@ -100,6 +100,7 @@
     const title = titleInput.value.trim();
     const skill = skillInput.value.trim();
     const desc  = document.getElementById('descInput').value.trim();
+    const credits = btnGroup.classList.contains('active') ? 15 : 10;
 
     if (!title || !skill) {
       if (!skill) { skillInput.focus(); skillInput.style.borderColor = '#ef4444'; }
@@ -119,7 +120,8 @@
       return;
     }
 
-    alert('Session published!\n\nTitle: ' + title + '\nSkill: ' + skill + '\nSlots: ' + selectedSlots.join(', '));
+    adjustCredits(credits);
+    alert('Session published!\n\nTitle: ' + title + '\nSkill: ' + skill + '\nSlots: ' + selectedSlots.join(', ') + '\nCredits earned: +' + credits);
     window.location.href = 'home.html';
   });
 

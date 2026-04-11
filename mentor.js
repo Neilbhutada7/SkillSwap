@@ -130,10 +130,19 @@ goes beyond textbooks.`;
       alert('Please select a time slot first.');
       return;
     }
+
+    const cost = 10;
+    if (getCredits() < cost) {
+      alert('You need at least ' + cost + ' credits to book this session. Earn credits by teaching or visit the Credits page.');
+      return;
+    }
+
     const d = new Date(today);
     d.setDate(today.getDate() + selectedDate);
     const dateStr = d.getDate() + ' ' + months2[d.getMonth()] + ' ' + d.getFullYear();
-    alert('Session booked!\n\nMentor: Ronakkumar Bathani\nDate: ' + dateStr + '\nTime: ' + selectedTime + '\n\nCheck your Bookings page for details.');
+
+    adjustCredits(-cost);
+    alert('Session booked!\n\nMentor: Ronakkumar Bathani\nDate: ' + dateStr + '\nTime: ' + selectedTime + '\nCredits spent: ' + cost + '\n\nCheck your Bookings page for details.');
     window.location.href = 'bookings.html';
   });
 
