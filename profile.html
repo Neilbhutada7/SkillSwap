@@ -5,6 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SkillSwap – Profile</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Editable sections ───────────────────────────────────── */
+    .edit-icon {
+      background:none; border:none; cursor:pointer;
+      color:var(--text-muted); padding:4px; border-radius:6px;
+      transition:all 0.15s; display:flex; align-items:center;
+    }
+    .edit-icon:hover { color:var(--teal); background:var(--teal-light); }
+
+    /* View state */
+    .section-view { display:block; }
+    .section-edit { display:none; }
+    .profile-section.editing .section-view { display:none; }
+    .profile-section.editing .section-edit { display:block; }
+
+    /* Textarea */
+    .edit-textarea {
+      width:100%; min-height:90px; padding:12px 14px;
+      border:1.5px solid var(--border); border-radius:10px;
+      font-family:'Inter',sans-serif; font-size:14px; color:var(--text);
+      line-height:1.6; resize:vertical; background:var(--bg);
+      transition:border-color 0.15s;
+    }
+    .edit-textarea:focus { outline:none; border-color:var(--teal); background:#fff; }
+
+    /* Experience / Education entry row */
+    .edit-entry-group { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+    .edit-entry-fields { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .edit-input {
+      width:100%; padding:10px 14px;
+      border:1.5px solid var(--border); border-radius:10px;
+      font-family:'Inter',sans-serif; font-size:14px; color:var(--text);
+      background:var(--bg); transition:border-color 0.15s;
+    }
+    .edit-input:focus { outline:none; border-color:var(--teal); background:#fff; }
+
+    /* Save / cancel buttons */
+    .edit-actions {
+      display:flex; gap:8px; margin-top:12px; justify-content:flex-end;
+    }
+    .btn-cancel-edit {
+      padding:8px 18px; border-radius:8px; border:1.5px solid var(--border);
+      background:var(--white); font-size:13px; font-weight:600;
+      color:var(--text-muted); cursor:pointer; transition:all 0.15s;
+    }
+    .btn-cancel-edit:hover { border-color:var(--text-muted); color:var(--text); }
+    .btn-save-edit {
+      padding:8px 20px; border-radius:8px; border:none;
+      background:var(--teal); color:#fff; font-size:13px; font-weight:700;
+      cursor:pointer; transition:background 0.15s;
+    }
+    .btn-save-edit:hover { background:var(--teal-dark); }
+
+    /* Displayed entries */
+    .exp-entry, .edu-entry {
+      padding:14px 0;
+      border-bottom:1px solid var(--border);
+    }
+    .exp-entry:last-child, .edu-entry:last-child { border-bottom:none; padding-bottom:0; }
+    .entry-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:2px; }
+    .entry-sub { font-size:13px; color:var(--text-muted); }
+
+    /* Add entry button */
+    .btn-add-entry {
+      display:inline-flex; align-items:center; gap:6px;
+      margin-top:12px; padding:8px 16px; border-radius:8px;
+      border:1.5px dashed var(--border); background:transparent;
+      font-size:13px; font-weight:600; color:var(--text-muted);
+      cursor:pointer; transition:all 0.15s;
+    }
+    .btn-add-entry:hover { border-color:var(--teal); color:var(--teal); background:var(--teal-light); }
+
+    /* Saved flash */
+    @keyframes savedPulse {
+      0%   { background:var(--teal-light); border-color:var(--teal); }
+      100% { background:var(--white); border-color:var(--border); }
+    }
+    .profile-section.saved { animation: savedPulse 1s ease forwards; }
+  </style>
 </head>
 <body>
 
@@ -39,40 +118,91 @@
       <div class="profile-body">
 
         <div class="profile-left">
-          <!-- <div class="profile-section">
-            <p class="about-text">Currently a student, interested in engineering and passionate about hobbies like guitar</p>
-            <div style="margin-bottom:12px;">
-              <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Expertise</div>
-              <span class="expertise-tag">Engineering</span>
-            </div>
-          </div> -->
-          <div class="profile-section">
+
+          <!-- About Us -->
+          <div class="profile-section" id="section-about">
             <div class="profile-section-header">
-              <h3>About Us</h3>
-              <button class="edit-icon">
+              <h3>About</h3>
+              <button class="edit-icon" data-section="about" title="Edit">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
             </div>
-            <p style="color:var(--text-muted);font-size:14px;">Currently a student, interested in engineering and passionate about hobbies like guitar.</p>
+
+            <!-- View -->
+            <div class="section-view">
+              <p class="about-text" id="about-display">Currently a student, interested in engineering and passionate about hobbies like guitar.</p>
+            </div>
+
+            <!-- Edit -->
+            <div class="section-edit">
+              <textarea class="edit-textarea" id="about-input" placeholder="Tell people about yourself..."></textarea>
+              <div class="edit-actions">
+                <button class="btn-cancel-edit" data-section="about">Cancel</button>
+                <button class="btn-save-edit" data-section="about">Save</button>
+              </div>
+            </div>
           </div>
-          <div class="profile-section">
+
+          <!-- Experience -->
+          <div class="profile-section" id="section-experience">
             <div class="profile-section-header">
               <h3>Experience</h3>
-              <button class="edit-icon">
+              <button class="edit-icon" data-section="experience" title="Edit">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
             </div>
-            <p style="color:var(--text-muted);font-size:14px;">No experience added yet</p>
+
+            <!-- View -->
+            <div class="section-view">
+              <div id="experience-display">
+                <p style="color:var(--text-muted);font-size:14px;">No experience added yet.</p>
+              </div>
+            </div>
+
+            <!-- Edit -->
+            <div class="section-edit">
+              <div id="experience-edit-entries"></div>
+              <button class="btn-add-entry" id="add-experience-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add experience
+              </button>
+              <div class="edit-actions">
+                <button class="btn-cancel-edit" data-section="experience">Cancel</button>
+                <button class="btn-save-edit" data-section="experience">Save</button>
+              </div>
+            </div>
           </div>
-          <div class="profile-section">
+
+          <!-- Education -->
+          <div class="profile-section" id="section-education">
             <div class="profile-section-header">
               <h3>Education</h3>
-              <button class="edit-icon">
+              <button class="edit-icon" data-section="education" title="Edit">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
             </div>
-            <p style="color:var(--text-muted);font-size:14px;">No education added yet</p>
+
+            <!-- View -->
+            <div class="section-view">
+              <div id="education-display">
+                <p style="color:var(--text-muted);font-size:14px;">No education added yet.</p>
+              </div>
+            </div>
+
+            <!-- Edit -->
+            <div class="section-edit">
+              <div id="education-edit-entries"></div>
+              <button class="btn-add-entry" id="add-education-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add education
+              </button>
+              <div class="edit-actions">
+                <button class="btn-cancel-edit" data-section="education">Cancel</button>
+                <button class="btn-save-edit" data-section="education">Save</button>
+              </div>
+            </div>
           </div>
+
         </div>
 
         <div class="profile-right">
