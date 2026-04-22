@@ -5,8 +5,128 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SkillSwap – Mentor Profile</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Booking Modal ─────────────────────────────────────── */
+    .booking-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+      z-index:500; backdrop-filter:blur(4px);
+      align-items:center; justify-content:center;
+    }
+    .booking-overlay.active { display:flex; }
+
+    .booking-modal {
+      background:var(--white); border-radius:20px; width:min(560px, 95vw);
+      max-height:90vh; overflow-y:auto; padding:0;
+      box-shadow:0 24px 80px rgba(0,0,0,0.2);
+      animation:slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform:translateY(30px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
+    .bm-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 24px 16px; border-bottom:1px solid var(--border);
+    }
+    .bm-header h3 { font-size:17px; font-weight:700; }
+    .bm-close {
+      width:32px; height:32px; border-radius:50%; background:var(--bg);
+      border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      color:var(--text-muted); font-size:18px;
+    }
+    .bm-close:hover { background:var(--border); }
+
+    .bm-body { padding:24px; }
+    .bm-section-label {
+      font-size:12px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.06em; color:var(--text-muted); margin-bottom:14px;
+    }
+
+    /* Calendar grid */
+    .modal-cal-grid {
+      display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:24px;
+    }
+    .modal-cal-cell {
+      display:flex; flex-direction:column; align-items:center; gap:2px;
+      padding:8px 4px; border-radius:10px; border:1.5px solid var(--border);
+      background:var(--white); cursor:pointer; transition:all 0.15s; min-width:0;
+    }
+    .modal-cal-cell:hover { border-color:var(--teal); }
+    .modal-cal-cell.active { border-color:var(--teal); background:var(--teal-light); }
+    .modal-cal-day { font-size:9px; font-weight:700; color:var(--text-muted); text-transform:uppercase; }
+    .modal-cal-num { font-size:15px; font-weight:700; color:var(--text); }
+    .modal-cal-mon { font-size:9px; color:var(--text-muted); }
+    .modal-cal-cell.active .modal-cal-day,
+    .modal-cal-cell.active .modal-cal-num,
+    .modal-cal-cell.active .modal-cal-mon { color:var(--teal); }
+
+    /* Time slots */
+    .modal-time-grid {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:24px;
+    }
+    .modal-time-btn {
+      padding:10px 8px; border-radius:8px; border:1.5px solid var(--border);
+      background:var(--white); font-size:12px; font-weight:500; cursor:pointer;
+      transition:all 0.15s; color:var(--text); text-align:center;
+    }
+    .modal-time-btn:hover { border-color:var(--teal); }
+    .modal-time-btn.active { border-color:var(--teal); background:var(--teal); color:#fff; font-weight:600; }
+
+    /* Confirm button */
+    .bm-confirm-btn {
+      width:100%; padding:14px; border-radius:12px; border:none;
+      background:var(--teal); color:#fff; font-size:15px; font-weight:700;
+      cursor:pointer; transition:background 0.15s;
+    }
+    .bm-confirm-btn:hover:not(:disabled) { background:var(--teal-dark); }
+    .bm-confirm-btn:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; }
+
+    /* ── Booking confirmed toast ───────────────────────────── */
+    .booking-toast {
+      position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(80px);
+      background:#111827; color:#fff; border-radius:14px; padding:16px 24px;
+      min-width:300px; max-width:440px; text-align:center; z-index:600;
+      box-shadow:0 8px 32px rgba(0,0,0,0.25);
+      transition:transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s;
+      opacity:0; pointer-events:none;
+    }
+    .booking-toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+    .toast-icon { font-size:28px; margin-bottom:6px; }
+    .toast-title { font-size:15px; font-weight:700; margin-bottom:4px; }
+    .toast-sub { font-size:13px; color:rgba(255,255,255,0.7); }
+    .toast-credits { color:#34d399; font-weight:600; }
+  </style>
 </head>
 <body class="mentor-body-root">
+
+    <!-- Booking Modal Overlay -->
+    <div class="booking-overlay" id="bookingModalOverlay">
+      <div class="booking-modal" id="bookingModal">
+        <div class="bm-header">
+          <h3>📅 Book a Session</h3>
+          <button class="bm-close" id="modalCloseBtn">✕</button>
+        </div>
+        <div class="bm-body">
+          <div class="bm-section-label">Choose a date</div>
+          <div class="modal-cal-grid" id="modalCalGrid"></div>
+
+          <div class="bm-section-label">Available time slots</div>
+          <div class="modal-time-grid" id="modalTimeGrid">
+            <p style="color:var(--text-muted);font-size:13px;grid-column:1/-1;">Select a date to see available time slots.</p>
+          </div>
+
+          <button class="bm-confirm-btn" id="modalConfirmBtn" disabled>Select date &amp; time to book</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Confirmed Toast -->
+    <div class="booking-toast" id="bookingToast">
+      <div class="toast-icon">✅</div>
+      <div class="toast-title">Session Booked!</div>
+      <div class="toast-sub">
+        <strong id="toastMentor"></strong><br>
+        <span id="toastDate"></span>
+      </div>
+    </div>
 
     <!-- Banner -->
     <div class="mentor-banner">
@@ -32,21 +152,14 @@
           <button class="mentor-action-btn" id="likeBtn" title="Save mentor">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </button>
-          <!-- <button class="mentor-action-btn" title="More options">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
-          </button> -->
         </div>
       </div>
 
       <!-- Tabs -->
       <div class="mentor-tabs" id="mentorTabs">
         <button class="mentor-tab active" data-tab="overview">Overview</button>
-        <button class="mentor-tab" data-tab="reviews">
-          Reviews
-        </button>
-        <button class="mentor-tab" data-tab="achievements">
-          Achievements
-        </button>
+        <button class="mentor-tab" data-tab="reviews">Reviews</button>
+        <button class="mentor-tab" data-tab="achievements">Achievements</button>
         <button class="mentor-tab" data-tab="group">Group sessions</button>
       </div>
     </div>
@@ -61,7 +174,6 @@
           <!-- Overview tab -->
           <div class="mentor-tab-panel active" id="panel-overview">
 
-            <!-- Bio -->
             <div class="mentor-section-card">
               <p class="mentor-bio-text" id="bioText">
                 Ronakkumar Bathani is a highly experienced Data Engineer with over 16 years in IT,
@@ -74,11 +186,9 @@
               </div>
             </div>
 
-            <!-- Profile insights -->
             <div class="mentor-section-card">
               <div class="mentor-insights-header">
                 <h3>Profile insights</h3>
-                <!-- <span class="mentor-how-link">How do I get these?</span> -->
               </div>
               <div class="insight-item">
                 <div class="insight-icon">
@@ -91,7 +201,6 @@
               </div>
             </div>
 
-            <!-- Background -->
             <div class="mentor-section-card">
               <h3>Background</h3>
               <div class="bg-row">
@@ -118,7 +227,6 @@
               </div>
             </div>
 
-            <!-- Credits -->
             <div class="mentor-section-card">
               <h3>Credits</h3>
               <div class="mentor-credits-row">
@@ -127,7 +235,6 @@
               </div>
             </div>
 
-            <!-- Open to learn -->
             <div class="mentor-section-card">
               <h3>Open to learn:</h3>
               <div class="open-learn-list">
@@ -150,9 +257,7 @@
                     <div class="review-name">Ananya S.</div>
                     <div class="review-date">February 2026</div>
                   </div>
-                  <div class="review-stars" style="margin-left:auto;">
-                    ★★★★★
-                  </div>
+                  <div class="review-stars" style="margin-left:auto;">★★★★★</div>
                 </div>
                 <p class="review-text">Ronakkumar is an excellent mentor. He explained complex data engineering concepts in a very clear and practical way. Highly recommend!</p>
               </div>
@@ -201,10 +306,6 @@
           <div class="mentor-stats-card">
             <div class="mentor-stats-header">
               <h3>Community statistics</h3>
-              <!-- <span class="mentor-see-more">
-                See more
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-              </span> -->
             </div>
             <div class="mentor-cstats-grid">
               <div class="mentor-cstat">
@@ -245,14 +346,6 @@
           <div class="mentor-similar-card">
             <div class="mentor-similar-header">
               <h3>Similar mentor profiles</h3>
-              <!-- <div class="mentor-similar-nav">
-                <button class="mentor-nav-btn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
-                <button class="mentor-nav-btn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-                </button>
-              </div> -->
             </div>
             <div class="similar-mentors-list">
               <div class="similar-mentor-item" onclick="window.location.href='mentor.html'">
@@ -291,7 +384,6 @@
         </div><!-- /mentor-right -->
       </div>
     </div>
-
 
   <script src="shared.js"></script>
   <script src="mentor.js"></script>
