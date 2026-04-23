@@ -43,26 +43,19 @@
     </div>
 
     <div id="tab-upcoming">
-      <div class="no-bookings">
-        <p>You have no upcoming bookings – start sharing a conversation with a mentor.</p>
-        <button class="btn-explore-mentors" onclick="window.location.href='explore.html'">Explore mentors</button>
+      <div class="booking-list" id="bookingListUpcoming">
+        <!-- Populated dynamically by bookings.js -->
       </div>
     </div>
-    <!-- <div id="tab-pending" style="display:none;">
-      <div class="no-bookings">
-        <p>No pending booking requests at the moment.</p>
-        <button class="btn-explore-mentors" onclick="window.location.href='explore.html'">Explore mentors</button>
-      </div>
-    </div> -->
     <div id="tab-history" style="display:none;">
-      <div class="no-bookings">
-        <p>You haven't completed any sessions yet.</p>
-        <button class="btn-explore-mentors" onclick="window.location.href='explore.html'">Book your first session</button>
+      <div class="booking-list" id="bookingListHistory">
+        <!-- Populated dynamically by bookings.js -->
       </div>
     </div>
 
   </main>
 
+  <script src="api.js"></script>
   <script src="shared.js"></script>
   <script src="bookings.js"></script>
 </body>

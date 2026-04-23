@@ -353,6 +353,12 @@ button { font-family:'Inter',sans-serif; }
 .setup-item a { color:var(--teal); font-weight:600; }
 .setup-item .dim { color:var(--text-muted); font-size:13px; }
 
+/* Home section cards (bookings, my sessions) */
+.home-section-card {
+  background:var(--white); border-radius:16px; border:1px solid var(--border);
+  padding:24px;
+}
+
 /* AI Goal card */
 .ai-goal-card {
   background:var(--white); border-radius:16px; border:1px solid var(--border); padding:24px;

@@ -142,7 +142,7 @@
           <div class="mentor-big-avatar" id="mentorAvatar" style="background:#0d4f47;">R</div>
           <div class="mentor-header-info" style="padding:20px 0 16px;">
             <div class="mentor-header-name" id="mentorName">Ronakkumar Bathani</div>
-            <div class="mentor-header-role">Senior Data Engineer <strong>at ResMed Digital Health</strong></div>
+            <div class="mentor-header-role" id="mentorRole">Senior Data Engineer <strong>at ResMed Digital Health</strong></div>
           </div>
         </div>
         <div class="mentor-header-actions" style="padding-top:20px; align-self:flex-start;">
@@ -205,7 +205,7 @@
               <h3>Background</h3>
               <div class="bg-row">
                 <span class="bg-label">Expertise</span>
-                <div class="bg-tags">
+                <div class="bg-tags" id="mentorExpertise">
                   <span class="bg-tag teal">Engineering</span>
                   <span class="bg-tag orange">Design</span>
                   <span class="bg-tag more">+1</span>
@@ -213,7 +213,7 @@
               </div>
               <div class="bg-row">
                 <span class="bg-label">Skills</span>
-                <div class="bg-tags">
+                <div class="bg-tags" id="mentorSkills">
                   <span class="bg-tag grey">Data Product Ma...</span>
                   <span class="bg-tag grey">Data Engineering</span>
                   <span class="bg-tag more">+1</span>
@@ -221,7 +221,7 @@
               </div>
               <div class="bg-row">
                 <span class="bg-label">Fluent in</span>
-                <div class="bg-tags">
+                <div class="bg-tags" id="mentorLanguages">
                   <span class="bg-tag grey">English</span>
                 </div>
               </div>
@@ -231,13 +231,13 @@
               <h3>Credits</h3>
               <div class="mentor-credits-row">
                 <svg class="mentor-credits-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                <span class="mentor-credits-text"><strong>10 credits</strong> per Hour</span>
+                <span class="mentor-credits-text" id="mentorCreditsText"><strong>10 credits</strong> per Hour</span>
               </div>
             </div>
 
             <div class="mentor-section-card">
               <h3>Open to learn:</h3>
-              <div class="open-learn-list">
+              <div class="open-learn-list" id="mentorOpenToLearn">
                 <span>Cooking</span>
                 <span>Guitar</span>
                 <span>Yoga</span>
@@ -249,18 +249,26 @@
           <!-- Reviews tab -->
           <div class="mentor-tab-panel" id="panel-reviews">
             <div class="mentor-section-card">
-              <h3>Reviews</h3>
-              <div class="review-item">
-                <div class="review-header">
-                  <div class="review-avatar" style="background:var(--teal);">A</div>
-                  <div>
-                    <div class="review-name">Ananya S.</div>
-                    <div class="review-date">February 2026</div>
-                  </div>
-                  <div class="review-stars" style="margin-left:auto;">★★★★★</div>
-                </div>
-                <p class="review-text">Ronakkumar is an excellent mentor. He explained complex data engineering concepts in a very clear and practical way. Highly recommend!</p>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <h3>Reviews</h3>
+                <span id="reviewStats" style="font-size:14px;color:var(--text-muted);"></span>
               </div>
+              <div id="reviewsList">
+                <p style="color:var(--text-muted);font-size:14px;">Loading reviews…</p>
+              </div>
+            </div>
+            <!-- Write review form -->
+            <div class="mentor-section-card" id="writeReviewCard" style="margin-top:16px;">
+              <h3 style="margin-bottom:12px;">Write a Review</h3>
+              <div style="display:flex;gap:4px;margin-bottom:12px;" id="starPicker">
+                <span class="star-pick" data-val="1" style="font-size:28px;cursor:pointer;color:var(--border);">★</span>
+                <span class="star-pick" data-val="2" style="font-size:28px;cursor:pointer;color:var(--border);">★</span>
+                <span class="star-pick" data-val="3" style="font-size:28px;cursor:pointer;color:var(--border);">★</span>
+                <span class="star-pick" data-val="4" style="font-size:28px;cursor:pointer;color:var(--border);">★</span>
+                <span class="star-pick" data-val="5" style="font-size:28px;cursor:pointer;color:var(--border);">★</span>
+              </div>
+              <textarea id="reviewText" rows="3" placeholder="Share your experience…" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;resize:vertical;outline:none;"></textarea>
+              <button id="submitReviewBtn" style="margin-top:10px;padding:10px 20px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Submit Review</button>
             </div>
           </div>
 
@@ -313,7 +321,7 @@
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </div>
                 <div>
-                  <div class="mentor-cstat-num">6,720</div>
+                  <div class="mentor-cstat-num" id="mentorMinutes">6,720</div>
                   <div class="mentor-cstat-label">Total mentoring time</div>
                 </div>
               </div>
@@ -322,7 +330,7 @@
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 </div>
                 <div>
-                  <div class="mentor-cstat-num">224</div>
+                  <div class="mentor-cstat-num" id="mentorSessionCount">224</div>
                   <div class="mentor-cstat-label">Sessions completed</div>
                 </div>
               </div>
@@ -347,37 +355,8 @@
             <div class="mentor-similar-header">
               <h3>Similar mentor profiles</h3>
             </div>
-            <div class="similar-mentors-list">
-              <div class="similar-mentor-item" onclick="window.location.href='mentor.html'">
-                <div class="similar-mentor-avatar" style="background:#1e3a5f;">S</div>
-                <div>
-                  <div class="similar-mentor-name">Suresh Patel</div>
-                  <div class="similar-mentor-role">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                    Enterprise Architect at NTT
-                  </div>
-                </div>
-              </div>
-              <div class="similar-mentor-item" onclick="window.location.href='mentor.html'">
-                <div class="similar-mentor-avatar" style="background:#14532d;">P</div>
-                <div>
-                  <div class="similar-mentor-name">Priya Singh</div>
-                  <div class="similar-mentor-role">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                    AI Research Lead at Google
-                  </div>
-                </div>
-              </div>
-              <div class="similar-mentor-item" onclick="window.location.href='mentor.html'">
-                <div class="similar-mentor-avatar" style="background:#2d1b69;">J</div>
-                <div>
-                  <div class="similar-mentor-name">James K.</div>
-                  <div class="similar-mentor-role">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                    Product Designer
-                  </div>
-                </div>
-              </div>
+            <div class="similar-mentors-list" id="similarMentors">
+              <!-- Populated by mentor.js -->
             </div>
           </div>
 
@@ -385,6 +364,7 @@
       </div>
     </div>
 
+  <script src="api.js"></script>
   <script src="shared.js"></script>
   <script src="mentor.js"></script>
 </body>

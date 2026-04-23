@@ -1,0 +1,44 @@
+# SkillSwap – Apache configuration for XAMPP
+# Place in the project root: c:\xampp\htdocs\skillswap\SkillSwap\.htaccess
+
+# ── Enable rewrite engine ───────────────────────────────────
+RewriteEngine On
+
+# ── PHP session settings ────────────────────────────────────
+php_value session.cookie_httponly 1
+php_value session.use_strict_mode 1
+php_value session.cookie_samesite "Lax"
+
+# ── Security headers ────────────────────────────────────────
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# ── Prevent direct access to config and model files ─────────
+<FilesMatch "\.(php)$">
+  # Allow API files and index files
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  # Block direct access to internal PHP files
+  RewriteRule ^config/    - [F,L]
+  RewriteRule ^models/    - [F,L]
+  RewriteRule ^controllers/ - [F,L]
+  RewriteRule ^helpers/   - [F,L]
+</IfModule>
+
+# ── MIME types ──────────────────────────────────────────────
+AddType application/json .json
+AddType application/javascript .js
+AddType text/css .css
+
+# ── Caching for static assets ───────────────────────────────
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/png   "access plus 1 week"
+  ExpiresByType image/jpeg  "access plus 1 week"
+  ExpiresByType text/css    "access plus 1 day"
+  ExpiresByType application/javascript "access plus 1 day"
+</IfModule>

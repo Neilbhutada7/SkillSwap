@@ -134,8 +134,34 @@
 
     </div>
 
+    <!-- Transaction history -->
+    <div class="credits-section-title" style="margin-top:32px;">Transaction History</div>
+    <div class="credits-history-card" style="background:var(--white);border-radius:16px;border:1px solid var(--border);padding:24px;">
+      <div class="credits-history-list" id="creditHistoryList">
+        <p style="color:var(--text-muted);font-size:14px;text-align:center;">Loading transactions…</p>
+      </div>
+    </div>
+
+    <style>
+      .credit-history-item {
+        display:flex; align-items:center; gap:14px; padding:14px 0;
+        border-bottom:1px solid var(--border);
+      }
+      .credit-history-item:last-child { border-bottom:none; }
+      .credit-history-icon {
+        width:40px; height:40px; border-radius:50%; display:flex;
+        align-items:center; justify-content:center; flex-shrink:0;
+        background:var(--bg);
+      }
+      .credit-history-info { flex:1; min-width:0; }
+      .credit-history-desc { font-size:14px; font-weight:500; }
+      .credit-history-date { font-size:12px; color:var(--text-muted); margin-top:2px; }
+      .credit-history-amount { font-size:16px; font-weight:700; flex-shrink:0; }
+    </style>
+
   </main>
 
+  <script src="api.js"></script>
   <script src="shared.js"></script>
   <script src="credits.js"></script>
 </body>

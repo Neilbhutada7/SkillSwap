@@ -44,16 +44,17 @@
           </div>
         </div>
 
-        <!-- <div class="ai-goal-card">
-          <h3>Share your goal, meet your mentor <span class="beta-tag">Beta</span></h3>
-          <p>Suggestions for you</p>
-          <div class="suggestion-chips">
-            <div class="chip">Need help transitioning from IC designer to design manager</div>
-            <div class="chip">Need advice on building my first B2B SaaS GTM strategy</div>
-            <div class="chip">How to build a personal brand in product leadership</div>
-            <div class="chip">How to build my executive presence and negotiation in meetings</div>
-          </div>
-        </div> -->
+        <!-- Upcoming Bookings (loaded from API) -->
+        <div class="home-section-card" id="upcomingBookingsSection" style="display:none;">
+          <h3 style="font-size:17px;font-weight:700;margin-bottom:16px;">📅 Upcoming Bookings</h3>
+          <div id="upcomingBookingsList"></div>
+        </div>
+
+        <!-- My Published Sessions (loaded from API) -->
+        <div class="home-section-card" id="mySessionsSection" style="display:none;">
+          <h3 style="font-size:17px;font-weight:700;margin-bottom:16px;">🎓 My Sessions (Teaching)</h3>
+          <div id="mySessionsList"></div>
+        </div>
 
       </div>
 
@@ -90,6 +91,7 @@
     </div>
   </main>
 
+  <script src="api.js"></script>
   <script src="shared.js"></script>
   <script src="home.js"></script>
 </body>

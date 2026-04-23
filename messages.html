@@ -5,15 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SkillSwap – Messages</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Messages-specific styles ─────────────────────────── */
+    .msg-conversations {
+      flex:1; overflow-y:auto; padding:0;
+    }
+    .msg-conv-item {
+      display:flex; align-items:center; gap:12px; padding:14px 20px;
+      cursor:pointer; transition:background 0.15s; border-bottom:1px solid var(--border);
+    }
+    .msg-conv-item:hover { background:var(--bg); }
+    .msg-conv-item.active { background:#f0fdfa; border-left:3px solid var(--teal); }
+    .msg-conv-avatar {
+      width:40px; height:40px; border-radius:50%; display:flex;
+      align-items:center; justify-content:center; color:#fff;
+      font-weight:700; font-size:15px; flex-shrink:0;
+    }
+    .msg-conv-info { flex:1; min-width:0; }
+    .msg-conv-name {
+      font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px;
+    }
+    .msg-unread-badge {
+      background:var(--teal); color:#fff; font-size:10px; font-weight:700;
+      padding:2px 7px; border-radius:100px;
+    }
+    .msg-conv-preview {
+      font-size:12px; color:var(--text-muted); white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis; margin-top:2px;
+    }
+
+    /* Chat area */
+    .msg-chat {
+      display:flex; flex-direction:column; background:var(--bg); height:100%;
+    }
+    .msg-chat-header {
+      display:flex; align-items:center; gap:12px; padding:16px 24px;
+      background:var(--white); border-bottom:1px solid var(--border);
+    }
+    .msg-chat-messages {
+      flex:1; overflow-y:auto; padding:24px; display:flex;
+      flex-direction:column; gap:8px;
+    }
+    .msg-bubble {
+      max-width:65%; padding:10px 16px; border-radius:16px;
+      font-size:14px; line-height:1.5; word-wrap:break-word;
+    }
+    .msg-bubble.sent {
+      align-self:flex-end; background:var(--teal); color:#fff;
+      border-bottom-right-radius:4px;
+    }
+    .msg-bubble.received {
+      align-self:flex-start; background:var(--white); color:var(--text);
+      border:1px solid var(--border); border-bottom-left-radius:4px;
+    }
+    .msg-bubble-content { margin-bottom:4px; }
+    .msg-bubble-time {
+      font-size:10px; opacity:0.7; text-align:right;
+    }
+
+    /* Input area */
+    .msg-input-area {
+      display:flex; align-items:center; gap:10px; padding:14px 24px;
+      background:var(--white); border-top:1px solid var(--border);
+    }
+    .msg-input-area input {
+      flex:1; padding:10px 16px; border:1.5px solid var(--border);
+      border-radius:100px; font-size:14px; outline:none;
+      font-family:'Inter',sans-serif; transition:border 0.2s;
+    }
+    .msg-input-area input:focus { border-color:var(--teal); }
+    .msg-send-btn {
+      width:40px; height:40px; border-radius:50%; background:var(--teal);
+      border:none; cursor:pointer; display:flex; align-items:center;
+      justify-content:center; color:#fff; transition:background 0.15s;
+      flex-shrink:0;
+    }
+    .msg-send-btn:hover { background:var(--teal-dark); }
+  </style>
 </head>
 <body>
 
-  <!-- Topbar + Sidebar injected by shared.js -->
-
-  <!-- Messages layout is fixed-positioned, no app-content wrapper needed -->
   <div class="messages-layout">
 
-    <!-- Left panel -->
+    <!-- Left panel: conversations list -->
     <div class="messages-sidebar">
       <div class="messages-sidebar-header">
         <h2>Messages</h2>
@@ -27,12 +101,25 @@
           <input type="text" id="memberSearch" placeholder="Search members">
         </div>
       </div>
-      <div class="no-messages" id="noMessages">No messages</div>
-      <div id="convList"></div>
+      <div class="msg-conversations" id="convList">
+        <!-- Populated by messages.js -->
+      </div>
     </div>
 
-    <!-- Right panel -->
-    <div class="messages-main" id="mainPanel">
+    <!-- Right panel: chat or empty state -->
+    <div class="msg-chat" id="chatPanel" style="display:none;">
+      <div class="msg-chat-header" id="chatHeader"></div>
+      <div class="msg-chat-messages" id="chatMessages"></div>
+      <div class="msg-input-area">
+        <input type="text" id="chatInput" placeholder="Type a message…" autocomplete="off">
+        <button class="msg-send-btn" id="chatSendBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty state (shown when no conversation selected) -->
+    <div class="messages-main" id="chatEmpty">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <h3>Start new message</h3>
       <p>Connect with mentors and start learning</p>
@@ -40,6 +127,7 @@
 
   </div>
 
+  <script src="api.js"></script>
   <script src="shared.js"></script>
   <script src="messages.js"></script>
 </body>

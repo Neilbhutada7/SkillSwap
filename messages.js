@@ -1,114 +1,276 @@
-// messages.js – SkillSwap Messages Page
+// messages.js – SkillSwap Messages Page (v3 — real-time polling)
 
 (function () {
   injectShell('nav-messages');
 
-  // ── Compose button ────────────────────────────────────────
+  // ── DOM refs ───────────────────────────────────────────────
+  var convList     = document.getElementById('convList');
+  var chatPanel    = document.getElementById('chatPanel');
+  var chatEmpty    = document.getElementById('chatEmpty');
+  var chatHeader   = document.getElementById('chatHeader');
+  var chatMessages = document.getElementById('chatMessages');
+  var chatInput    = document.getElementById('chatInput');
+  var chatSendBtn  = document.getElementById('chatSendBtn');
+  var searchInput  = document.getElementById('memberSearch');
+
+  var currentPartnerId = null;
+  var conversations    = [];
+  var pollTimer        = null;
+  var threadPollTimer  = null;
+
+  // ── Load conversations from API ────────────────────────────
+  function loadConversations(silent) {
+    SkillSwapAPI.messages.conversations().then(function (result) {
+      if (result && result.success) {
+        conversations = result.conversations || [];
+        renderConversations();
+
+        // Auto-select first conversation if none selected
+        if (conversations.length > 0 && !currentPartnerId && !silent) {
+          selectConversation(conversations[0].partner_id);
+        }
+      }
+    });
+  }
+
+  function renderConversations() {
+    var searchTerm = (searchInput.value || '').trim().toLowerCase();
+
+    var filtered = conversations;
+    if (searchTerm) {
+      filtered = conversations.filter(function (c) {
+        return c.partner_name.toLowerCase().indexOf(searchTerm) !== -1;
+      });
+    }
+
+    convList.innerHTML = '';
+
+    if (filtered.length === 0) {
+      convList.innerHTML =
+        '<p style="padding:24px;color:var(--text-muted);font-size:14px;text-align:center;">' +
+        (searchTerm ? 'No matches found.' : 'No conversations yet.<br>Book a session and start chatting!') +
+        '</p>';
+      return;
+    }
+
+    filtered.forEach(function (conv) {
+      var item = document.createElement('div');
+      item.className = 'msg-conv-item' + (conv.partner_id === currentPartnerId ? ' active' : '');
+      item.innerHTML =
+        '<div class="msg-conv-avatar" style="background:' + (conv.avatar_color || '#0d9488') + '">' +
+          (conv.avatar_initial || conv.partner_name.charAt(0).toUpperCase()) +
+        '</div>' +
+        '<div class="msg-conv-info">' +
+          '<div class="msg-conv-name">' + escHtml(conv.partner_name) +
+            (conv.unread_count > 0 ? ' <span class="msg-unread-badge">' + conv.unread_count + '</span>' : '') +
+          '</div>' +
+          '<div class="msg-conv-preview">' + escHtml(truncate(conv.last_message, 40)) + '</div>' +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--text-muted);flex-shrink:0;">' + formatRelative(conv.last_at) + '</div>';
+
+      item.addEventListener('click', function () {
+        selectConversation(conv.partner_id);
+      });
+
+      convList.appendChild(item);
+    });
+  }
+
+  // ── Select a conversation ──────────────────────────────────
+  function selectConversation(partnerId) {
+    currentPartnerId = partnerId;
+
+    // Show chat panel, hide empty
+    chatPanel.style.display = '';
+    chatEmpty.style.display = 'none';
+
+    // Update active state
+    renderConversations();
+
+    // Find partner info
+    var partner = conversations.find(function (c) { return c.partner_id === partnerId; });
+    if (!partner) return;
+
+    // Update header
+    chatHeader.innerHTML =
+      '<div class="msg-conv-avatar" style="background:' + (partner.avatar_color || '#0d9488') + '">' +
+        (partner.avatar_initial || partner.partner_name.charAt(0).toUpperCase()) +
+      '</div>' +
+      '<div>' +
+        '<div style="font-weight:600;font-size:15px;">' + escHtml(partner.partner_name) + '</div>' +
+        '<div style="font-size:12px;color:var(--text-muted);">Click to view profile</div>' +
+      '</div>';
+
+    chatHeader.style.cursor = 'pointer';
+    chatHeader.onclick = function () {
+      window.location.href = 'mentor.html?id=' + partnerId;
+    };
+
+    loadThread(partnerId);
+    startThreadPolling(partnerId);
+  }
+
+  // ── Load chat thread ───────────────────────────────────────
+  function loadThread(partnerId) {
+    SkillSwapAPI.messages.thread(partnerId).then(function (result) {
+      if (result && result.success) {
+        renderMessages(result.messages || []);
+      }
+    });
+  }
+
+  function renderMessages(messages) {
+    var wasAtBottom = chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 20;
+    var oldCount = chatMessages.children.length;
+
+    chatMessages.innerHTML = '';
+    var user = getCurrentUser();
+    var myId = user ? user.id : 0;
+
+    messages.forEach(function (msg) {
+      var div = document.createElement('div');
+      div.className = 'msg-bubble ' + (msg.sender_id === myId ? 'sent' : 'received');
+      div.innerHTML =
+        '<div class="msg-bubble-content">' + escHtml(msg.content) + '</div>' +
+        '<div class="msg-bubble-time">' + formatTime(msg.created_at) + '</div>';
+      chatMessages.appendChild(div);
+    });
+
+    // Auto-scroll if at bottom or new messages arrived
+    if (wasAtBottom || messages.length > oldCount) {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  }
+
+  // ── Send message ───────────────────────────────────────────
+  function sendMessage() {
+    var text = chatInput.value.trim();
+    if (!text || !currentPartnerId) return;
+
+    chatInput.value = '';
+    chatInput.focus();
+
+    // Optimistic UI: add message immediately
+    var div = document.createElement('div');
+    div.className = 'msg-bubble sent';
+    div.innerHTML =
+      '<div class="msg-bubble-content">' + escHtml(text) + '</div>' +
+      '<div class="msg-bubble-time">Just now</div>';
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Send via API
+    SkillSwapAPI.messages.send(currentPartnerId, text).then(function (result) {
+      if (!result || !result.success) {
+        div.style.opacity = '0.5';
+        div.title = 'Failed to send';
+      } else {
+        // Refresh conversation list to update preview
+        loadConversations(true);
+      }
+    });
+  }
+
+  chatSendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // ── Search conversations ───────────────────────────────────
+  searchInput.addEventListener('input', function () {
+    renderConversations();
+  });
+
+  // ── Polling: auto-refresh conversations every 5s ───────────
+  function startPolling() {
+    pollTimer = setInterval(function () {
+      loadConversations(true);
+    }, 5000);
+  }
+
+  // ── Polling: auto-refresh thread every 3s ──────────────────
+  function startThreadPolling(partnerId) {
+    if (threadPollTimer) clearInterval(threadPollTimer);
+    threadPollTimer = setInterval(function () {
+      if (currentPartnerId === partnerId) {
+        loadThread(partnerId);
+      }
+    }, 3000);
+  }
+
+  // Cleanup on page leave
+  window.addEventListener('beforeunload', function () {
+    if (pollTimer) clearInterval(pollTimer);
+    if (threadPollTimer) clearInterval(threadPollTimer);
+  });
+
+  // ── Compose button: show user picker ───────────────────────
   document.getElementById('composeBtn').addEventListener('click', function () {
-    const name = prompt('Start a new conversation with (enter mentor name):');
-    if (name && name.trim()) {
-      addConversation(name.trim());
+    var userId = prompt('Enter the mentor user ID to message:');
+    if (userId && parseInt(userId) > 0) {
+      selectConversation(parseInt(userId));
+      // Force add to conversations if not exists
+      var exists = conversations.find(function (c) { return c.partner_id === parseInt(userId); });
+      if (!exists) {
+        SkillSwapAPI.profile.read(parseInt(userId)).then(function (result) {
+          if (result && result.success && result.profile) {
+            conversations.unshift({
+              partner_id: result.profile.id,
+              partner_name: result.profile.name,
+              avatar_initial: result.profile.avatar_initial,
+              avatar_color: result.profile.avatar_color,
+              last_message: '',
+              last_at: new Date().toISOString(),
+              unread_count: 0
+            });
+            renderConversations();
+            selectConversation(result.profile.id);
+          }
+        });
+      }
     }
   });
 
-  // ── Member search ─────────────────────────────────────────
-  document.getElementById('memberSearch').addEventListener('input', function () {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('.conv-item').forEach(item => {
-      item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none';
-    });
-  });
-
-  // ── Helper: add a conversation item ──────────────────────
-  function addConversation(name) {
-    const noMsg  = document.getElementById('noMessages');
-    const list   = document.getElementById('convList');
-    if (noMsg) noMsg.style.display = 'none';
-
-    const item = document.createElement('div');
-    item.className = 'conv-item';
-    item.style.cssText = `
-      display:flex; align-items:center; gap:12px; padding:14px 16px;
-      cursor:pointer; border-bottom:1px solid var(--border); transition:background 0.15s;
-    `;
-    item.innerHTML = `
-      <div style="width:40px;height:40px;border-radius:50%;background:var(--teal);
-        color:#fff;display:flex;align-items:center;justify-content:center;
-        font-weight:700;font-size:16px;flex-shrink:0;">
-        ${name.charAt(0).toUpperCase()}
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-weight:600;font-size:14px;">${name}</div>
-        <div style="font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-          Tap to start chatting…
-        </div>
-      </div>
-    `;
-    item.addEventListener('mouseenter', () => item.style.background = '#f9fafb');
-    item.addEventListener('mouseleave', () => item.style.background = '');
-    item.addEventListener('click', () => openChat(name));
-    list.appendChild(item);
-    openChat(name);
+  // ── Helpers ────────────────────────────────────────────────
+  function escHtml(str) {
+    return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // ── Helper: open a chat window ────────────────────────────
-  function openChat(name) {
-    const panel = document.getElementById('mainPanel');
-    panel.style.cssText = 'display:flex;flex-direction:column;height:100%;';
-    panel.innerHTML = `
-      <div style="padding:16px 24px;border-bottom:1px solid var(--border);
-        display:flex;align-items:center;gap:12px;background:#fff;">
-        <div style="width:40px;height:40px;border-radius:50%;background:var(--teal);
-          color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">
-          ${name.charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <div style="font-weight:700;font-size:15px;">${name}</div>
-          <div style="font-size:12px;color:var(--text-muted);">Online</div>
-        </div>
-      </div>
-      <div id="chatMessages" style="flex:1;overflow-y:auto;padding:24px;
-        display:flex;flex-direction:column;gap:12px;background:var(--bg);">
-        <div style="text-align:center;color:var(--text-muted);font-size:13px;">
-          This is the beginning of your conversation with ${name}
-        </div>
-      </div>
-      <div style="padding:16px 24px;border-top:1px solid var(--border);
-        display:flex;gap:12px;background:#fff;">
-        <input id="chatInput" type="text" placeholder="Type a message…"
-          style="flex:1;padding:10px 16px;border:1.5px solid var(--border);
-          border-radius:100px;outline:none;font-family:Inter,sans-serif;font-size:14px;">
-        <button id="sendBtn" style="padding:10px 20px;background:var(--teal);color:#fff;
-          border:none;border-radius:100px;font-weight:600;cursor:pointer;">Send</button>
-      </div>
-    `;
-
-    function sendMessage() {
-      const input = document.getElementById('chatInput');
-      const text  = input.value.trim();
-      if (!text) return;
-      const msg = document.createElement('div');
-      msg.style.cssText = `align-self:flex-end;background:var(--teal);color:#fff;
-        padding:10px 16px;border-radius:18px 18px 4px 18px;font-size:14px;max-width:70%;`;
-      msg.textContent = text;
-      document.getElementById('chatMessages').appendChild(msg);
-      input.value = '';
-      msg.scrollIntoView({ behavior: 'smooth' });
-
-      // Fake reply after 800 ms
-      setTimeout(() => {
-        const reply = document.createElement('div');
-        reply.style.cssText = `align-self:flex-start;background:#fff;border:1px solid var(--border);
-          padding:10px 16px;border-radius:18px 18px 18px 4px;font-size:14px;max-width:70%;`;
-        reply.textContent = 'Thanks for reaching out! Let\'s find a time to connect.';
-        document.getElementById('chatMessages').appendChild(reply);
-        reply.scrollIntoView({ behavior: 'smooth' });
-      }, 800);
-    }
-
-    document.getElementById('sendBtn').addEventListener('click', sendMessage);
-    document.getElementById('chatInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') sendMessage();
-    });
+  function truncate(str, len) {
+    if (!str) return '';
+    return str.length > len ? str.substring(0, len) + '…' : str;
   }
+
+  function formatTime(datetime) {
+    if (!datetime) return '';
+    var d = new Date(datetime);
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+  }
+
+  function formatRelative(datetime) {
+    if (!datetime) return '';
+    var d = new Date(datetime);
+    var now = new Date();
+    var diff = now - d;
+    var mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'now';
+    if (mins < 60) return mins + 'm';
+    var hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + 'h';
+    var days = Math.floor(hours / 24);
+    if (days < 7) return days + 'd';
+    return d.getDate() + '/' + (d.getMonth() + 1);
+  }
+
+  // ── Initial load ───────────────────────────────────────────
+  loadConversations();
+  startPolling();
+
 })();

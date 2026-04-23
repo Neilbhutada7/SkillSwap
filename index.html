@@ -42,7 +42,7 @@
 
       <div class="hero-floating-card">
         <div class="session-img"></div>
-        <div class="fstat">2.7k+ sessions</div>
+        <div class="fstat" id="heroSessionStat">2.7k+ sessions</div>
         <div class="fstat-sub">JUST TRUST US — WE'LL TAKE CARE OF IT</div>
       </div>
     </div>
@@ -56,7 +56,7 @@
           <div class="hero-avatar-circle" style="background:#ec4899;">A</div>
           <div class="hero-avatar-circle" style="background:#f59e0b;">K</div>
         </div>
-        <span class="hero-count">5k+</span>
+        <span class="hero-count" id="heroUserStat">5k+ active users</span>
       </div>
       <button class="hero-reserve-btn" id="reserveBtn">Reserve Service</button>
     </div>
@@ -71,8 +71,8 @@
   <div class="modal-overlay" id="modal">
     <div class="modal">
       <button class="modal-close" id="modalClose">×</button>
-      <h2>Accelerate your career</h2>
-      <p class="modal-sub">
+      <h2 id="modalTitle">Accelerate your career</h2>
+      <p class="modal-sub" id="modalSub">
         Get access to our expert community of Mentors in Design, Product,
         AI, Tech and more worldwide.
       </p>
@@ -94,6 +94,9 @@
       <div class="modal-or">OR</div>
       <label class="modal-label">Email address</label>
       <input type="email" class="modal-input" placeholder="Your email address" id="emailInput">
+      <input type="text" class="modal-input" placeholder="Full name" id="nameInput" style="display:none;margin-top:8px;">
+      <input type="password" class="modal-input" placeholder="Password" id="passwordInput" style="margin-top:8px;">
+      <div id="authError" style="color:#ef4444;font-size:13px;margin-top:6px;display:none;"></div>
       <button class="btn-email-continue" id="continueEmail">Continue with email</button>
       <p class="modal-footer">
         This site is protected by reCAPTCHA Enterprise and the Google
@@ -102,6 +105,7 @@
     </div>
   </div>
 
+  <script src="api.js"></script>
   <script src="landing.js"></script>
 </body>
 </html>

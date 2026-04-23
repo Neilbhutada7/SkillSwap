@@ -1,0 +1,27 @@
+# ── User uploads (don't commit personal files) ──────────────
+uploads/*
+!uploads/.gitkeep
+
+# ── macOS metadata ────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverrideF
+
+# ── Windows ───────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── IDE / Editor ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ── PHP temp / logs ───────────────────────────────────────────
+*.log
+error_log
+php_errorlog
+
+# ── Node (if ever used) ───────────────────────────────────────
+node_modules/

@@ -1,23 +1,23 @@
-// teach.js – SkillSwap Host a Session Page
+// teach.js – SkillSwap Host a Session Page (v2 — API-backed)
 
 (function () {
   injectShell('nav-home');
 
   // ── Build days row (Mon–Sun for current week) ─────────────
-  const days    = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-  const today   = new Date();
-  const dayOfWeek = today.getDay();
-  const monday  = new Date(today);
+  var days    = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  var today   = new Date();
+  var dayOfWeek = today.getDay();
+  var monday  = new Date(today);
   monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
 
-  const daysRow = document.getElementById('daysRow');
-  let selectedDay = today.getDay() === 0 ? 6 : today.getDay() - 1;
+  var daysRow = document.getElementById('daysRow');
+  var selectedDay = today.getDay() === 0 ? 6 : today.getDay() - 1;
 
   days.forEach(function (name, i) {
-    const d = new Date(monday);
+    var d = new Date(monday);
     d.setDate(monday.getDate() + i);
 
-    const btn = document.createElement('button');
+    var btn = document.createElement('button');
     btn.className = 'day-btn' + (i === selectedDay ? ' active' : '');
     btn.innerHTML =
       '<span class="day-name">' + name + '</span>' +
@@ -33,11 +33,11 @@
   });
 
   // ── Build preset time slots ────────────────────────────────
-  const slots = ['09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
-  const slotsGrid = document.getElementById('slotsGrid');
+  var slots = ['09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'];
+  var slotsGrid = document.getElementById('slotsGrid');
 
   function createSlotBtn(time, isCustom) {
-    const btn = document.createElement('button');
+    var btn = document.createElement('button');
     btn.className = 'time-slot' + (isCustom ? ' custom-added' : '');
     btn.textContent = time;
 
@@ -46,7 +46,7 @@
     });
 
     if (isCustom) {
-      const removeBtn = document.createElement('button');
+      var removeBtn = document.createElement('button');
       removeBtn.className = 'slot-remove';
       removeBtn.textContent = '✕';
       removeBtn.title = 'Remove';
@@ -65,12 +65,11 @@
   });
 
   // ── Custom time slot dropdowns ────────────────────────────
-  const hourSel   = document.getElementById('customHour');
-  const minSel    = document.getElementById('customMinute');
-  const ampmSel   = document.getElementById('customAmPm');
-  const addCustomSlotBtn = document.getElementById('addCustomSlotBtn');
+  var hourSel   = document.getElementById('customHour');
+  var minSel    = document.getElementById('customMinute');
+  var ampmSel   = document.getElementById('customAmPm');
+  var addCustomSlotBtn = document.getElementById('addCustomSlotBtn');
 
-  // Populate hours 1–12
   for (var h = 1; h <= 12; h++) {
     var opt = document.createElement('option');
     opt.value = h;
@@ -79,7 +78,6 @@
     hourSel.appendChild(opt);
   }
 
-  // Populate minutes: 00, 15, 30, 45
   ['00', '15', '30', '45'].forEach(function (m) {
     var opt = document.createElement('option');
     opt.value = m;
@@ -93,7 +91,6 @@
     var ampm   = ampmSel.value;
     var formatted = h + ':' + m + ' ' + ampm;
 
-    // Check for duplicate
     var existing = Array.from(slotsGrid.querySelectorAll('.time-slot')).map(function (b) {
       return b.childNodes[0].textContent.trim();
     });
@@ -109,9 +106,9 @@
   });
 
   // ── Customisable credits ───────────────────────────────────
-  const creditsValEl   = document.getElementById('creditsVal');
-  const previewCredits = document.getElementById('previewCredits');
-  let creditsAmount = 10;
+  var creditsValEl   = document.getElementById('creditsVal');
+  var previewCredits = document.getElementById('previewCredits');
+  var creditsAmount = 10;
 
   function updateCreditsDisplay() {
     creditsValEl.textContent   = creditsAmount;
@@ -126,25 +123,26 @@
   });
 
   // ── Live preview update ────────────────────────────────────
-  const titleInput = document.getElementById('titleInput');
-  const skillInput = document.getElementById('skillInput');
-  const previewTitle = document.getElementById('previewTitle');
-  const previewCat   = document.getElementById('previewCat');
+  var titleInput = document.getElementById('titleInput');
+  var skillInput = document.getElementById('skillInput');
+  var previewTitle = document.getElementById('previewTitle');
+  var previewCat   = document.getElementById('previewCat');
 
   titleInput.addEventListener('input', function () {
     previewTitle.textContent = this.value.trim() || 'Session Title';
   });
 
   skillInput.addEventListener('input', function () {
-    const val = this.value.trim() || 'Skill Category';
+    var val = this.value.trim() || 'Skill Category';
     previewCat.innerHTML =
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ' + val;
   });
 
   // ── Publish Session ────────────────────────────────────────
   document.getElementById('publishBtn').addEventListener('click', function () {
-    const title = titleInput.value.trim();
-    const skill = skillInput.value.trim();
+    var title = titleInput.value.trim();
+    var skill = skillInput.value.trim();
+    var desc  = (document.getElementById('descInput') || {}).value || '';
 
     if (!title || !skill) {
       if (!skill) { skillInput.focus(); skillInput.style.borderColor = '#ef4444'; }
@@ -156,7 +154,7 @@
       return;
     }
 
-    const selectedSlots = Array.from(document.querySelectorAll('.time-slot.active'))
+    var selectedSlots = Array.from(document.querySelectorAll('.time-slot.active'))
       .map(function (s) { return s.childNodes[0].textContent.trim(); });
 
     if (selectedSlots.length === 0) {
@@ -164,9 +162,36 @@
       return;
     }
 
-    adjustCredits(creditsAmount);
-    alert('Session published!\n\nTitle: ' + title + '\nSkill: ' + skill + '\nSlots: ' + selectedSlots.join(', ') + '\nCredits per session: ' + creditsAmount);
-    window.location.href = 'home.html';
+    // Build slots array for API
+    var slotsData = selectedSlots.map(function (time) {
+      // Map selectedDay (0=Mon..6=Sun) to DB day_of_week (0=Sun..6=Sat)
+      var dbDay = (selectedDay + 1) % 7;
+      return { day_of_week: dbDay, time_slot: time };
+    });
+
+    // Call API to create session
+    var publishBtn = document.getElementById('publishBtn');
+    publishBtn.disabled = true;
+    publishBtn.textContent = 'Publishing…';
+
+    SkillSwapAPI.sessions.create({
+      title: title,
+      skill: skill,
+      description: desc,
+      credits_per_session: creditsAmount,
+      slots: slotsData
+    }).then(function (result) {
+      if (result && result.success) {
+        // Credit earned for teaching (server handles it)
+        adjustCredits(creditsAmount);
+        alert('Session published!\n\nTitle: ' + title + '\nSkill: ' + skill + '\nSlots: ' + selectedSlots.join(', ') + '\nCredits per session: ' + creditsAmount);
+        window.location.href = 'home.html';
+      } else {
+        alert('Failed to publish session: ' + (result ? result.message : 'Unknown error'));
+        publishBtn.disabled = false;
+        publishBtn.textContent = 'Publish Session';
+      }
+    });
   });
 
 })();
