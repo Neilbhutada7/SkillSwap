@@ -38,9 +38,8 @@ jobs:
           
           echo "Connecting to $HOST:$PORT..."
           
-          # 2. Strip the 'CREATE DATABASE' lines that fail on Railway
-          sed -i 's/CREATE DATABASE IF NOT EXISTS.*//g' sql/schema.sql
-          sed -i 's/USE `skillswap_db`.*//g' sql/schema.sql
+          # 2. Delete the first 15 lines of schema.sql (the CREATE DATABASE and USE blocks)
+          sed -i '1,15d' sql/schema.sql
           
           # 3. RUN the import
           mysql -h $HOST -P $PORT -u $USER -p$PASS $DB < sql/schema.sql
