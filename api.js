@@ -1,7 +1,7 @@
 // api.js – Central API client for SkillSwap
 // Include this script BEFORE shared.js on every page.
 
-var API_BASE = '/SkillSwap%20%201/SkillSwap/api';
+var API_BASE = '/SkillSwap%20%201/api';
 
 var SkillSwapAPI = {
 

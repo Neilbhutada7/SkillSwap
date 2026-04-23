@@ -38,6 +38,7 @@
 
   SkillSwapAPI.bookings.list('upcoming').then(function (result) {
     if (result && result.success && result.bookings && result.bookings.length > 0) {
+      if (setupCard) setupCard.style.display = 'none';
       bookingsSection.style.display = '';
       subtitleEl.textContent = 'You have ' + result.bookings.length + ' upcoming session' + (result.bookings.length > 1 ? 's' : '');
 
