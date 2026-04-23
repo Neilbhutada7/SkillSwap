@@ -180,7 +180,7 @@ button { font-family:'Inter',sans-serif; }
 
 /* Hero */
 .landing-hero {
-  min-height:100vh; padding-top:68px;
+  min-height: calc(100vh - 80px); padding-top: 40px;
   background:linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 40%,#f0fdfa 100%);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   position:relative; overflow:hidden;
@@ -201,11 +201,11 @@ button { font-family:'Inter',sans-serif; }
 }
 .hero-heading {
   font-family:'Sora',sans-serif; font-size:clamp(52px,7vw,96px);
-  font-weight:800; line-height:1.0; color:#111; margin-bottom:40px;
+  font-weight:800; line-height:1.0; color:#111; margin-bottom: 24px;
   letter-spacing:-2px;
 }
 .hero-floating-card {
-  position:absolute; right:-20px; bottom:-20px;
+  position:absolute; right:-20px; bottom: 0;
   background:var(--white); border-radius:20px; padding:20px 24px;
   box-shadow:0 20px 60px rgba(0,0,0,0.12); width:220px;
   animation:floatCard 3s ease-in-out infinite alternate;
@@ -226,12 +226,12 @@ button { font-family:'Inter',sans-serif; }
   font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;
 }
 .hero-right-tags {
-  position:absolute; right:100px; top:-80px;
+  position:absolute; right:100px; top:-60px;
   display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-muted);
 }
 .hero-right-tags span { display:flex; align-items:center; gap:6px; }
 .hero-bottom {
-  max-width:900px; width:100%; padding:0 48px 60px;
+  max-width:900px; width:100%; padding: 0 48px 40px;
   display:flex; align-items:center; justify-content:space-between; position:relative;
 }
 .hero-avatars { display:flex; align-items:center; }
