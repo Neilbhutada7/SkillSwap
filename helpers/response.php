@@ -17,10 +17,15 @@ function jsonResponse($data, int $statusCode = 200): void
     header('Content-Type: application/json; charset=utf-8');
     header('X-Content-Type-Options: nosniff');
 
-    // Allow same-origin requests (frontend and API share the same host)
-    header('Access-Control-Allow-Origin: *');
+    // Handle CORS for JSON responses
+    if (isset($_SERVER['HTTP_ORIGIN'])) {
+        header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+        header('Access-Control-Allow-Credentials: true');
+    } else {
+        header('Access-Control-Allow-Origin: *');
+    }
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
@@ -46,10 +51,20 @@ function errorResponse(string $message, int $statusCode = 400): void
  */
 function handleCors(): void
 {
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type');
+    // If you are hosting your frontend on GitHub Pages, change '*' 
+    // to your specific domain (e.g., https://neilbhutada7.github.io)
+    // to allow credentialed requests (cookies/sessions).
+    if (isset($_SERVER['HTTP_ORIGIN'])) {
+        header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+        header('Access-Control-Allow-Credentials: true');
+    } else {
+        header('Access-Control-Allow-Origin: *');
+    }
 
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+
+    // Handle preflight
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         http_response_code(204);
         exit;

@@ -1,0 +1,8 @@
+{
+    "name": "neilbhutada7/skillswap",
+    "description": "SkillSwap platform backend",
+    "type": "project",
+    "require": {
+        "php": ">=7.4"
+    }
+}

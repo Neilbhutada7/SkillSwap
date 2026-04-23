@@ -7,11 +7,13 @@
  */
 
 // ── Database credentials ────────────────────────────────────────
-define('DB_HOST', 'localhost');
-define('DB_PORT', '3306');
-define('DB_NAME', 'skillswap_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');           // XAMPP default: empty password
+// ── Database credentials (supports environment variables for easy deployment)
+// ── Database credentials (supports environment variables for Railway/Render/InfinityFree)
+define('DB_HOST', getenv('MYSQLHOST') ?: (getenv('DB_HOST') ?: 'localhost'));
+define('DB_PORT', getenv('MYSQLPORT') ?: (getenv('DB_PORT') ?: '3306'));
+define('DB_NAME', getenv('MYSQLDATABASE') ?: (getenv('DB_NAME') ?: 'skillswap_db'));
+define('DB_USER', getenv('MYSQLUSER') ?: (getenv('DB_USER') ?: 'root'));
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: (getenv('DB_PASS') ?: '')); 
 define('DB_CHARSET', 'utf8mb4');
 
 /**
