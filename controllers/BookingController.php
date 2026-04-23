@@ -49,15 +49,6 @@ class BookingController
         try {
             $booking = $this->bookingModel->create($sessionId, $userId, $slotId, $bookingDate, $timeSlot);
 
-            // Log credit transactions
-            $this->creditModel->addTransaction(
-                $userId,
-                -$booking['credits_paid'],
-                'spend',
-                'Booked session: ' . $booking['session_title'] . ' with ' . $booking['mentor_name'],
-                $booking['id']
-            );
-
             jsonResponse([
                 'success' => true,
                 'message' => 'Session booked successfully!',

@@ -104,11 +104,19 @@ var SkillSwapAPI = {
     read:   function (id) { return SkillSwapAPI.get('/profile/read.php' + (id ? '?id=' + id : '')); },
     update: function (data) { return SkillSwapAPI.post('/profile/update.php', data); },
     uploadAvatar: function (formData) {
+      // Use standard fetch for FormData, ensuring credentials are included for the session
       return fetch('api/profile/upload_avatar.php', {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') },
+        credentials: 'include',
         body: formData
-      }).then(r => r.json()).catch(() => null);
+      }).then(function(r) { return r.json(); }).catch(function() { return null; });
+    },
+    uploadBanner: function (formData) {
+      return fetch('api/profile/upload_banner.php', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      }).then(function(r) { return r.json(); }).catch(function() { return null; });
     }
   }
 };

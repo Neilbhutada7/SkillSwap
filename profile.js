@@ -111,7 +111,7 @@
   });
 
   document.getElementById('avatarEditBtn').addEventListener('click', function (e) {
-    e.stopPropagation(); // prevent edit profile from triggering if we had overlapping listeners
+    e.stopPropagation();
     document.getElementById('avatarFileInput').click();
   });
 
@@ -149,11 +149,16 @@
           document.getElementById('avatarFileInput').click();
         });
 
-        // also update sidebar avatar if possible
+        // CRITICAL: Synchronize sidebar avatar/logo
         var sidebarAvatar = document.querySelector('.sidebar-avatar');
+        var sidebarProfileImg = document.querySelector('.sidebar-profile-img'); // check both targets if any
         if (sidebarAvatar) {
           sidebarAvatar.innerHTML = '<img src="' + res.avatar_url + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />';
         }
+        // also navbar logo if applicable
+        var navProfileImg = document.querySelector('.nav-profile-img');
+        if (navProfileImg) navProfileImg.src = res.avatar_url;
+
       } else {
         avatarBlock.innerHTML = oldContent;
         alert('Upload failed: ' + (res ? res.message : 'Unknown error'));
@@ -164,6 +169,48 @@
       }
     });
   });
+
+  // ── Banner upload ───────────────────────────────────────────
+  var bannerEditBtn = document.getElementById('bannerEditBtn');
+  var bannerFileInput = document.getElementById('bannerFileInput');
+  var profileBanner = document.getElementById('profileBanner');
+
+  if (bannerEditBtn) {
+    bannerEditBtn.addEventListener('click', function() {
+      bannerFileInput.click();
+    });
+  }
+
+  if (bannerFileInput) {
+    bannerFileInput.addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 4 * 1024 * 1024) {
+        alert('Banner file is too large. Max size is 4MB.');
+        return;
+      }
+
+      var formData = new FormData();
+      formData.append('banner', file);
+
+      bannerEditBtn.textContent = 'Uploading…';
+
+      SkillSwapAPI.profile.uploadBanner(formData).then(function(res) {
+        if (res && res.success) {
+          profileBanner.style.backgroundImage = 'url(' + res.banner_url + ')';
+          profileBanner.style.backgroundSize = 'cover';
+          profileBanner.style.backgroundPosition = 'center';
+          bannerEditBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Edit Banner';
+        } else {
+          bannerEditBtn.innerHTML = 'Error! Try again';
+          setTimeout(function() {
+            bannerEditBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Edit Banner';
+          }, 3000);
+        }
+      });
+    });
+  }
 
   document.querySelector('.profile-strength-card-alt').addEventListener('click', function () {
     alert('Complete your profile to level up!\n\n• Add about info\n• Add experience\n• Add education\n• Book a session');
@@ -204,6 +251,14 @@
         } else {
           avatarEl.childNodes[0].textContent = p.avatar_initial || p.name.charAt(0).toUpperCase();
         }
+      }
+
+      // Update banner if exists
+      var bannerEl = document.getElementById('profileBanner');
+      if (bannerEl && p.banner_url) {
+        bannerEl.style.backgroundImage = 'url(' + p.banner_url + ')';
+        bannerEl.style.backgroundSize = 'cover';
+        bannerEl.style.backgroundPosition = 'center';
       }
 
       renderAbout();

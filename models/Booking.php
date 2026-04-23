@@ -32,6 +32,9 @@ class Booking
     public function create(int $sessionId, int $learnerId, ?int $slotId,
                            string $bookingDate, string $timeSlot): array
     {
+        require_once __DIR__ . '/Credit.php';
+        $creditModel = new Credit();
+
         $this->db->beginTransaction();
 
         try {
@@ -57,33 +60,12 @@ class Booking
             $cost = (int) $session['credits_per_session'];
 
             // 2. Check learner's credit balance
-            $bStmt = $this->db->prepare('SELECT credits FROM users WHERE id = :uid FOR UPDATE');
-            $bStmt->execute([':uid' => $learnerId]);
-            $balance = (int) $bStmt->fetchColumn();
-
+            $balance = $creditModel->getBalance($learnerId);
             if ($balance < $cost) {
                 throw new Exception('Insufficient credits. You need ' . $cost . ' but have ' . $balance . '.');
             }
 
-            // 3. Deduct from learner
-            $this->db->prepare('UPDATE users SET credits = credits - :cost WHERE id = :uid')
-                     ->execute([':cost' => $cost, ':uid' => $learnerId]);
-
-            // 4. Add to mentor
-            $this->db->prepare('UPDATE users SET credits = credits + :cost WHERE id = :uid')
-                     ->execute([':cost' => $cost, ':uid' => $session['mentor_id']]);
-
-            // 5. Update session stats
-            $this->db->prepare('UPDATE users SET sessions_booked = sessions_booked + 1 WHERE id = :uid')
-                     ->execute([':uid' => $learnerId]);
-
-            // 6. Mark slot as booked (if specified)
-            if ($slotId) {
-                $this->db->prepare('UPDATE session_slots SET is_booked = 1 WHERE id = :id')
-                         ->execute([':id' => $slotId]);
-            }
-
-            // 7. Create booking record
+            // 3. Create booking record FIRST (needed for reference_id)
             $iStmt = $this->db->prepare(
                 'INSERT INTO bookings (session_id, learner_id, slot_id, booking_date, time_slot, credits_paid)
                  VALUES (:sid, :lid, :slid, :date, :time, :credits)'
@@ -96,8 +78,35 @@ class Booking
                 ':time'    => $timeSlot,
                 ':credits' => $cost,
             ]);
-
             $bookingId = (int) $this->db->lastInsertId();
+
+            // 4. Deduct from learner + Log
+            $creditModel->addTransaction(
+                $learnerId,
+                -$cost,
+                'spend',
+                'Booked session: ' . $session['title'] . ' with ' . $session['mentor_name'],
+                $bookingId
+            );
+
+            // 5. Add to mentor + Log
+            $creditModel->addTransaction(
+                (int)$session['mentor_id'],
+                $cost,
+                'earn',
+                'Hosted session: ' . $session['title'] . ' for ' . $learnerId, // ideally learner name here
+                $bookingId
+            );
+
+            // 6. Update session stats
+            $this->db->prepare('UPDATE users SET sessions_booked = sessions_booked + 1 WHERE id = :uid')
+                     ->execute([':uid' => $learnerId]);
+
+            // 7. Mark slot as booked (if specified)
+            if ($slotId) {
+                $this->db->prepare('UPDATE session_slots SET is_booked = 1 WHERE id = :id')
+                         ->execute([':id' => $slotId]);
+            }
 
             $this->db->commit();
 
@@ -157,12 +166,15 @@ class Booking
      */
     public function cancel(int $bookingId, int $userId): bool
     {
+        require_once __DIR__ . '/Credit.php';
+        $creditModel = new Credit();
+
         $this->db->beginTransaction();
 
         try {
-            // Get booking details
+            // Get booking details and ensure it's "upcoming" and belongs to the user
             $stmt = $this->db->prepare(
-                'SELECT b.*, s.mentor_id
+                'SELECT b.*, s.mentor_id, s.title AS session_title
                  FROM bookings b
                  JOIN sessions s ON s.id = b.session_id
                  WHERE b.id = :bid AND b.learner_id = :uid AND b.status = "upcoming"
@@ -177,19 +189,29 @@ class Booking
 
             $refund = (int) $booking['credits_paid'];
 
-            // Refund learner
-            $this->db->prepare('UPDATE users SET credits = credits + :amt WHERE id = :uid')
-                     ->execute([':amt' => $refund, ':uid' => $userId]);
+            // 1. Refund learner + Log
+            $creditModel->addTransaction(
+                $userId,
+                $refund,
+                'earn',
+                'Refund – Cancelled booking: ' . $booking['session_title'],
+                $bookingId
+            );
 
-            // Deduct from mentor
-            $this->db->prepare('UPDATE users SET credits = GREATEST(0, CAST(credits AS SIGNED) - :amt) WHERE id = :uid')
-                     ->execute([':amt' => $refund, ':uid' => $booking['mentor_id']]);
+            // 2. Deduct from mentor + Log
+            $creditModel->addTransaction(
+                (int)$booking['mentor_id'],
+                -$refund,
+                'spend',
+                'Deduction – Learner cancelled booking: ' . $booking['session_title'],
+                $bookingId
+            );
 
-            // Mark cancelled
+            // 3. Mark cancelled
             $this->db->prepare('UPDATE bookings SET status = "cancelled" WHERE id = :bid')
                      ->execute([':bid' => $bookingId]);
 
-            // Free the slot
+            // 4. Free the slot
             if ($booking['slot_id']) {
                 $this->db->prepare('UPDATE session_slots SET is_booked = 0 WHERE id = :id')
                          ->execute([':id' => $booking['slot_id']]);

@@ -5,74 +5,69 @@ require_once __DIR__ . '/../../config/database.php';
 
 handleCors();
 
-// Ensure POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     errorResponse('Method not allowed', 405);
 }
 
 $userId = requireAuth();
 
-if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
+if (!isset($_FILES['banner']) || $_FILES['banner']['error'] !== UPLOAD_ERR_OK) {
     errorResponse('No file uploaded or upload error occurred.', 400);
 }
 
-$file = $_FILES['avatar'];
+$file = $_FILES['banner'];
 
-// Check file size (max 2MB)
-if ($file['size'] > 2 * 1024 * 1024) {
-    errorResponse('File size exceeds the 2MB limit.', 400);
+// Max 4MB for banner
+if ($file['size'] > 4 * 1024 * 1024) {
+    errorResponse('File size exceeds the 4MB limit.', 400);
 }
 
-// Check mime type
 $finfo = finfo_open(FILEINFO_MIME_TYPE);
 $mimeType = finfo_file($finfo, $file['tmp_name']);
 finfo_close($finfo);
 
-$allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+$allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 if (!in_array($mimeType, $allowedTypes)) {
-    errorResponse('Invalid file type. Only JPG, PNG, WEBP, and GIF are allowed.', 400);
+    errorResponse('Invalid file type. Only JPG, PNG, and WEBP are allowed.', 400);
 }
 
-// Generate secure filename
 $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
 if (!$ext) {
-    // try to guess extension
-    $mimes = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
+    $mimes = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
     $ext = $mimes[$mimeType] ?? 'png';
 }
 
-$filename = 'avatar_' . $userId . '_' . time() . '.' . strtolower($ext);
-$uploadDir = __DIR__ . '/../../uploads/avatars/';
+$filename = 'banner_' . $userId . '_' . time() . '.' . strtolower($ext);
+$uploadDir = __DIR__ . '/../../uploads/banners/';
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0777, true);
 }
 $uploadPath = $uploadDir . $filename;
-$publicUrl = 'uploads/avatars/' . $filename;
+$publicUrl = 'uploads/banners/' . $filename;
 
 if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
     errorResponse('Failed to move uploaded file.', 500);
 }
 
-// Update database
 $db = getDBConnection();
 
-// Get the old avatar if exists to delete it
-$stmt = $db->prepare('SELECT avatar_url FROM users WHERE id = :uid');
+// Delete old banner
+$stmt = $db->prepare('SELECT banner_url FROM users WHERE id = :uid');
 $stmt->execute([':uid' => $userId]);
 $oldUrl = $stmt->fetchColumn();
 
-if ($oldUrl && strpos($oldUrl, 'uploads/avatars/') === 0) {
+if ($oldUrl && strpos($oldUrl, 'uploads/banners/') === 0) {
     $oldPath = __DIR__ . '/../../' . $oldUrl;
     if (file_exists($oldPath)) {
         unlink($oldPath);
     }
 }
 
-$update = $db->prepare('UPDATE users SET avatar_url = :url WHERE id = :uid');
+$update = $db->prepare('UPDATE users SET banner_url = :url WHERE id = :uid');
 $update->execute([':url' => $publicUrl, ':uid' => $userId]);
 
 jsonResponse([
     'success' => true,
-    'message' => 'Avatar updated successfully',
-    'avatar_url' => $publicUrl
+    'message' => 'Banner updated successfully',
+    'banner_url' => $publicUrl
 ]);

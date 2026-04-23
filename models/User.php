@@ -90,7 +90,7 @@ class User
     public function findById(int $id)
     {
         $stmt = $this->db->prepare(
-            'SELECT id, name, email, role, company, avatar_initial, avatar_color, avatar_url,
+            'SELECT id, name, email, role, company, avatar_initial, avatar_color, avatar_url, banner_url,
                     credits, profile_strength, profile_level,
                     sessions_taught, sessions_booked, attendance_rate,
                     experience_years, country_flag, is_mentor,
@@ -115,7 +115,7 @@ class User
     {
         $stmt = $this->db->prepare(
             'SELECT u.id, u.name, u.email, u.role, u.company,
-                    u.avatar_initial, u.avatar_color, u.avatar_url, u.credits,
+                    u.avatar_initial, u.avatar_color, u.avatar_url, u.banner_url, u.credits,
                     u.profile_strength, u.profile_level,
                     u.sessions_taught, u.sessions_booked,
                     u.attendance_rate, u.experience_years,
@@ -272,7 +272,7 @@ class User
             $where[] = 'u.is_new = 1';
         }
 
-        $sql = 'SELECT u.id, u.name, u.role, u.company, u.avatar_initial, u.avatar_color, u.avatar_url,
+        $sql = 'SELECT u.id, u.name, u.role, u.company, u.avatar_initial, u.avatar_color, u.avatar_url, u.banner_url,
                        u.sessions_taught, u.attendance_rate, u.experience_years,
                        u.country_flag, u.is_available_asap, u.is_notable, u.is_new, u.categories
                 FROM users u
