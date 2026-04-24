@@ -4,8 +4,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "apache2-foreground",
-    "healthcheckPath": "/",
     "restartPolicyType": "ON_FAILURE"
   }
 }
